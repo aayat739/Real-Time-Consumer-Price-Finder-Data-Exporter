@@ -1,0 +1,53 @@
+import serpapi
+import csv
+
+# Paste your API key between the quote marks below:
+API_KEY = "2893182913a035753b9e74f2c614de995bc420e59fcb08a5d9052b6942e32782"
+
+def find_best_deals(product_name):
+    print(f"\n🔍 Searching for the best deals for: {product_name}...\n")
+    client = serpapi.Client(api_key=API_KEY)
+
+    try:
+        results = client.search({
+            "engine": "google_shopping",
+            "q": product_name,
+            "hl": "en",
+            "gl": "in",
+            "sort_by": "1"
+        })
+
+        shopping_results = results.get("shopping_results", [])
+
+        if not shopping_results:
+            print("No results found.")
+            return
+
+        print("✅ Found results! Top 5 lowest prices:\n")
+        
+        # --- NEW: Create a CSV file named after your search ---
+        filename = f"{product_name}_deals.csv".replace(" ", "_")
+        
+        with open(filename, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Rank", "Product Title", "Price", "Link"]) # Header row
+
+            for i, item in enumerate(shopping_results[:5], start=1):
+                title = item.get("title", "No title")
+                price = item.get("price", "Price not listed")
+                link = item.get("product_link", "No link")
+
+                print(f"{i}. {title}")
+                print(f"   💰 Price: {price}")
+                print(f"   🔗 Link: {link}\n")
+                
+                # Write each item into the spreadsheet
+                writer.writerow([i, title, price, link])
+                
+        print(f"📁 Success! Your deals have been saved to a spreadsheet named: {filename}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+      
+user_item = input("🛍️ What do you want to shop for today? Type it here: ")
+find_best_deals(user_item)
